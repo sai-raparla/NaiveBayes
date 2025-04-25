@@ -1,2 +1,5 @@
-# NaiveBayes
-3000 Final Project 
+# Naive Bayes - Final Project
+
+
+## Mid Semester Progress Slides:
+
