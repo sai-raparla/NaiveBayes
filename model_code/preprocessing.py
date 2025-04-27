@@ -65,34 +65,35 @@ def vectorize_text(text_data):
 # 4. Preprocessing Pipeline
 def preprocess_data(file_path):
     """Complete preprocessing pipeline"""
-    # Load data
-    df = load_data(file_path)
-    
+    df = pd.read_csv(file_path)
+
     # Use the correct column names ('tweet' for text and 'class' for labels)
     texts = df['tweet']  # Update this to 'tweet' for tweet text
     labels = df['class']  # Update this to 'class' for the label (the target)
-    
+
     # Get custom stopwords
     stop_words = get_custom_stopwords()
-    
+
     # Clean text data
     df['cleaned_text'] = texts.apply(lambda x: clean_text(x, stop_words))
-    
+
     # Vectorize the cleaned text
     X, vectorizer = vectorize_text(df['cleaned_text'])
-    
+
     # Prepare labels
     y = df['class'].values  # Using the 'class' column for labels
-    
-    # Train-test split (80% train, 20% test)
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    
+
+    # Train-test split (80% train, 20% test) and keep track of indices
+    X_train, X_test, y_train, y_test, train_indices, test_indices = train_test_split(
+        X, y, df.index, test_size=0.2, random_state=42
+    )
+
     # Encode labels
     le = LabelEncoder()
     y_train_encoded = le.fit_transform(y_train)  # Encode the training labels
     y_test_encoded = le.transform(y_test)  # Encode the test labels
-    
-    return X_train, X_test, y_train_encoded, y_test_encoded, vectorizer
+
+    return X_train, X_test, y_train_encoded, y_test_encoded, vectorizer, df, train_indices, test_indices
 
 if __name__ == "__main__":
     file_path = 'C:/Users/princ/NaiveBayes/labeled_data.csv'  # Path to the uploaded file

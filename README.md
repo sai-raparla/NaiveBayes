@@ -18,23 +18,24 @@ The system uses **Naïve Bayes** for classification and includes various preproc
 
 To run this code, you will need the following libraries:
 
-- **Python** (preferably Python 3.x)
+- **Python**
 - **pandas**: for data manipulation
 - **nltk**: for natural language processing
 - **sklearn**: for machine learning algorithms and evaluation
 - **imblearn**: for handling imbalanced classes (SMOTE)
 - **matplotlib** and **seaborn**: for visualization
+- **transformers**: for BERT tokenization / models (hybrid model integration)
 
 To install these dependencies, you can use the following:
 
 ```bash
-pip install pandas nltk scikit-learn imbalanced-learn matplotlib seaborn
+pip install pandas nltk scikit-learn imbalanced-learn matplotlib seaborn transformers
 ```
 
 ### File Structure
 
 - **preprocessing.py**: Contains functions to preprocess the data (text cleaning, stopword removal, text vectorization).
-- **model_training.py**: Contains functions to train and evaluate the Naïve Bayes model, perform SMOTE, adjust thresholds, and generate visualizations.
+- **model_training.py**: Contains functions to train and evaluate the Naïve Bayes model, perform SMOTE, adjust thresholds, and generate visualizations. Also integrates BERT for improved features.
 
 
 ### Running the Code
@@ -45,14 +46,14 @@ The script starts by loading the dataset, cleaning the text, and vectorizing it 
 
 **Change the `file_path` in the `preprocessing.py` script**:
 
-By default, the `file_path` is set to `'C:/Users/princ/NaiveBayes/labeled_data.csv'`, which may not work on another system. To make it flexible, you should either:
+By default, the `file_path` is set to `'C:/Users/princ/NaiveBayes/labeled_data.csv'`, which will not work on another user's operating. To make it work, you should either:
 
 - **Update the `file_path`** with the correct path to your dataset, or
 - **Modify the script to use a relative file path** or prompt the user for the file location.
 
 #### Flexible File Path Solution:
 
-Instead of hardcoding the `file_path`, you can modify the code to take the file path as an argument. This will make it easier for other users to run the code without modifying it.
+Instead of hardcoding the `file_path`, you can modify the code to take the file path as an input. This will make it easier to run the code without modifying it.
 
 **Change the following in `preprocessing.py`:**
 
@@ -92,7 +93,7 @@ The following visualizations are generated:
 
 #### Step 5: Adjust the Model
 
-The script also includes functionality to adjust the model’s **thresholds** to improve recall for the minority class (e.g., **Hate Speech**), which might be underrepresented in the data.
+The script also includes functionality to adjust the model’s **thresholds** to improve recall for the minority classes, which might be underrepresented in the data.
 
 
 ### Customization
@@ -109,3 +110,11 @@ To run the model, simply execute the script from the command line:
 ```bash
 python model_training.py
 ```
+
+### Use of Naive Bayes with hybrid BERT features    
+
+Our project utilizes the Naive Bayes model primarily, but we also decided to incoporate BERT features to fine tune our Naive Bayes model, to futher improve performance in analyzing the semantics of the text/word counts.
+
+- **Naive Bayes** is primary classifer that utilizes BERT features for analyzation enchancement.
+- **Bias detection** is another feature of the model evalution, ensuring fair analyzation across different groups.
+- **Ethical concerns** were also analyzed in model, with false positives and false negatives, to ensure model fairness.
