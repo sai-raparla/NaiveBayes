@@ -29,7 +29,7 @@ To install these dependencies, you can use the following:
 
 ```bash
 pip install pandas nltk scikit-learn imbalanced-learn matplotlib seaborn
-
+```
 
 ### File Structure
 
@@ -62,9 +62,10 @@ import os
 # asks for the file path
 file_path = input("Please enter the path to the dataset CSV file: ")
 
+
 # Alternatively, use a relative path if the dataset is in the same directory as the script
 # file_path = os.path.join(os.getcwd(), 'labeled_data.csv')  # Uncomment if dataset is in the same directory
-
+```
 
 #### Step 2: Train the Model
 
@@ -107,3 +108,4 @@ To run the model, simply execute the script from the command line:
 
 ```bash
 python model_training.py
+```
