@@ -199,29 +199,29 @@ def extract_bert_features(texts, tokenizer, model, device):
 
 # Main script
 if __name__ == "__main__":
-    file_path = 'C:/Users/princ/NaiveBayes/labeled_data.csv'  # Path to the uploaded file
+    file_path = input("Please enter the path to the dataset CSV file: ")  # Adjust with your file path
     X_train, X_test, y_train, y_test, vectorizer, df, train_indices, test_indices = preprocess_data(file_path)
 
     print("Preprocessing completed!")
     print(f"Training data shape: {X_train.shape}")
     print(f"Testing data shape: {X_test.shape}")
 
-    # 2. Apply SMOTE to handle class imbalance
+    # 2. apply SMOTE to handle class imbalance
     X_train_res, y_train_res = apply_smote(X_train, y_train)
 
-    # 3. Train Naïve Bayes model with resampled data
+    # 3. train Naïve Bayes model with resampled data
     nb_model = train_naive_bayes(X_train_res, y_train_res)
 
-    # 4. Hyperparameter tuning for Naïve Bayes (optional)
+    # 4. hyperparameter tuning for Naïve Bayes (optional)
     best_alpha = hyperparameter_tuning(X_train_res, y_train_res, X_test, y_test)
 
-    # 5. Adjust the threshold to improve recall for the minority class
+    # 5. adjust the threshold to improve recall for the minority class
     y_pred_adjusted = adjust_threshold(nb_model, X_test, y_test)
 
-    # 6. Evaluate the model
+    # 6. evaluate the model
     evaluate_model(nb_model, X_test, y_test, df, test_indices)  # Pass df and test indices
 
-    # 7. Visualizations
+    # 7. visualizations
     plot_class_distribution(y_train)  # Class distribution
     plot_precision_recall_curve(nb_model, X_test, y_test)  # Precision-recall curve
     plot_confusion_matrix(y_test, y_pred_adjusted, ["Hate Speech", "Offensive Language", "Neutral"])  # Confusion matrix

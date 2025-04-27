@@ -7,7 +7,6 @@ from sklearn.preprocessing import LabelEncoder
 
 # Load the dataset
 def load_data(file_path):
-    """Loads dataset from a CSV file"""
     df = pd.read_csv(file_path)
     print(df.head())  # To check the first few rows of the dataset
     return df
@@ -96,7 +95,7 @@ def preprocess_data(file_path):
     return X_train, X_test, y_train_encoded, y_test_encoded, vectorizer, df, train_indices, test_indices
 
 if __name__ == "__main__":
-    file_path = 'C:/Users/princ/NaiveBayes/labeled_data.csv'  # Path to the uploaded file
+    file_path = input("Please enter the path to the dataset CSV file: ")  # Path to the uploaded file
     X_train, X_test, y_train, y_test, vectorizer = preprocess_data(file_path)
     
     print("Preprocessing completed!")
