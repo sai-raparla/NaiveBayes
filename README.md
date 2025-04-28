@@ -29,7 +29,7 @@ To run this code, you will need the following libraries:
 To install these dependencies, you can use the following:
 
 ```bash
-pip install pandas nltk scikit-learn imbalanced-learn matplotlib seaborn transformers
+pip install pandas nltk scikit-learn imbalanced-learn matplotlib seaborn transformers torch
 ```
 
 ### File Structure
