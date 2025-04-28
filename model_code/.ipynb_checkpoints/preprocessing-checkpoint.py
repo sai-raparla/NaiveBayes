@@ -2,14 +2,13 @@ import pandas as pd
 import re
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
-import nltk
 from nltk.corpus import stopwords
 from sklearn.preprocessing import LabelEncoder
 
 # Load the dataset
 def load_data(file_path):
     df = pd.read_csv(file_path)
-    print(df.head())
+    print(df.head())  # To check the first few rows of the dataset
     return df
 
 # 1. Custom Stopwords List
@@ -59,17 +58,17 @@ def clean_text(text, stop_words):
 def vectorize_text(text_data):
     """Converts text data into numerical features using TfidfVectorizer"""
     vectorizer = TfidfVectorizer(max_features=5000)  # You can adjust max_features as needed
-    X = vectorizer.fit_transform(text_data)  
-    return X
+    X = vectorizer.fit_transform(text_data)  # Keep as sparse matrix
+    return X, vectorizer
 
 # 4. Preprocessing Pipeline
 def preprocess_data(file_path):
     """Complete preprocessing pipeline"""
-    df = load_data(file_path)
+    df = pd.read_csv(file_path)
 
     # Use the correct column names ('tweet' for text and 'class' for labels)
-    texts = df['tweet']  
-    labels = df['class'] 
+    texts = df['tweet']  # Update this to 'tweet' for tweet text
+    labels = df['class']  # Update this to 'class' for the label (the target)
 
     # Get custom stopwords
     stop_words = get_custom_stopwords()
@@ -78,38 +77,26 @@ def preprocess_data(file_path):
     df['cleaned_text'] = texts.apply(lambda x: clean_text(x, stop_words))
 
     # Vectorize the cleaned text
-    X = vectorize_text(df['cleaned_text'])
+    X, vectorizer = vectorize_text(df['cleaned_text'])
 
     # Prepare labels
     y = df['class'].values  # Using the 'class' column for labels
 
-    # Train-test split (80% train, 20% test) 
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42
+    # Train-test split (80% train, 20% test) and keep track of indices
+    X_train, X_test, y_train, y_test, train_indices, test_indices = train_test_split(
+        X, y, df.index, test_size=0.2, random_state=42
     )
 
     # Encode labels
     le = LabelEncoder()
-    y_train_encoded = le.fit_transform(y_train)  
-    y_test_encoded = le.transform(y_test) 
+    y_train_encoded = le.fit_transform(y_train)  # Encode the training labels
+    y_test_encoded = le.transform(y_test)  # Encode the test labels
 
-    preprocessed_df = pd.DataFrame({
-        'tweet': df['tweet'],
-        'cleaned_text': df['cleaned_text'],
-        'class': df['class'],
-        'encoded_class': le.transform(df['class'])  # Adding the encoded labels
-    })
-
-    # output_file = 'preprocessed.csv'
-    # preprocessed_df.to_csv(output_file, index=False)
-    # print(f"Preprocessed data saved to {output_file}")
-
-    return X_train, X_test, y_train_encoded, y_test_encoded
+    return X_train, X_test, y_train_encoded, y_test_encoded, vectorizer, df, train_indices, test_indices
 
 if __name__ == "__main__":
-    file_path = '../labeled_data.csv'
-    nltk.download('stopwords')
-    X_train, X_test, y_train, y_test = preprocess_data(file_path)
+    file_path = input("Please enter the path to the dataset CSV file: ")  # Path to the uploaded file
+    X_train, X_test, y_train, y_test, vectorizer = preprocess_data(file_path)
     
     print("Preprocessing completed!")
     print(f"Training data shape: {X_train.shape}")
