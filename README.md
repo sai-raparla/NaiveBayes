@@ -24,12 +24,12 @@ To run this code, you will need the following libraries:
 - **sklearn**: for machine learning algorithms and evaluation
 - **imblearn**: for handling imbalanced classes (SMOTE)
 - **matplotlib** and **seaborn**: for visualization
-- **transformers**: for BERT tokenization / models (hybrid model integration)
+- **torch**: for 
 
 To install these dependencies, you can use the following:
 
 ```bash
-pip install pandas nltk scikit-learn imbalanced-learn matplotlib seaborn transformers torch
+pip install pandas nltk scikit-learn imbalanced-learn matplotlib seaborn  torch
 ```
 
 ### File Structure
