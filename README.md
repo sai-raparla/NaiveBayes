@@ -44,13 +44,6 @@ pip install pandas nltk scikit-learn imbalanced-learn matplotlib seaborn transfo
 
 The script starts by loading the dataset, cleaning the text, and vectorizing it into numerical features using **TF-IDF**.
 
-**Change the `file_path` in the `preprocessing.py` script**:
-
-By default, the `file_path` is set to `'C:/Users/princ/NaiveBayes/labeled_data.csv'`, which will not work on another user's operating. To make it work, you should either:
-
-- **Update the `file_path`** with the correct path to your dataset, or
-- **Modify the script to use a relative file path** or prompt the user for the file location.
-
 #### Step 2: Train the Model
 
 The model uses **Naïve Bayes** to classify the text. You can choose to apply **SMOTE** to balance the class distribution.
