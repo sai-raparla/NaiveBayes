@@ -17,8 +17,6 @@ The system uses **Naïve Bayes** for classification and includes various preproc
 ### Requirements
 
 To run this code, you will need the following libraries:
-
-- **Python**
 - **pandas**: for data manipulation
 - **nltk**: for natural language processing
 - **sklearn**: for machine learning algorithms and evaluation
