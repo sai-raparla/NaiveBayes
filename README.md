@@ -51,23 +51,6 @@ By default, the `file_path` is set to `'C:/Users/princ/NaiveBayes/labeled_data.c
 - **Update the `file_path`** with the correct path to your dataset, or
 - **Modify the script to use a relative file path** or prompt the user for the file location.
 
-#### Flexible File Path Solution:
-
-Instead of hardcoding the `file_path`, you can modify the code to take the file path as an input. This will make it easier to run the code without modifying it.
-
-**Change the following in `preprocessing.py`:**
-
-```python
-import os
-
-# asks for the file path
-file_path = input("Please enter the path to the dataset CSV file: ")
-
-
-# Alternatively, use a relative path if the dataset is in the same directory as the script
-# file_path = os.path.join(os.getcwd(), 'labeled_data.csv')  # Uncomment if dataset is in the same directory
-```
-
 #### Step 2: Train the Model
 
 The model uses **Naïve Bayes** to classify the text. You can choose to apply **SMOTE** to balance the class distribution.
@@ -111,10 +94,3 @@ To run the model, simply execute the script from the command line:
 python model_training.py
 ```
 
-### Use of Naive Bayes with hybrid BERT features    
-
-Our project utilizes the Naive Bayes model primarily, but we also decided to incoporate BERT features to fine tune our Naive Bayes model, to futher improve performance in analyzing the semantics of the text/word counts.
-
-- **Naive Bayes** is primary classifer that utilizes BERT features for analyzation enchancement.
-- **Bias detection** is another feature of the model evalution, ensuring fair analyzation across different groups.
-- **Ethical concerns** were also analyzed in model, with false positives and false negatives, to ensure model fairness.
