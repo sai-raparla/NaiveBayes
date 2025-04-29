@@ -9,12 +9,21 @@ from sklearn.metrics import recall_score
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 import seaborn as sns
+from transformers import BertTokenizer, BertForSequenceClassification
+import torch
+from torch.utils.data import Dataset, DataLoader
 from preprocessing import preprocess_data
 
-# SMOTE
+# Function to apply SMOTE
 def apply_smote(X_train, y_train):
     smote = SMOTE(random_state=42)
     X_train_res, y_train_res = smote.fit_resample(X_train, y_train)
+    return X_train_res, y_train_res
+
+# Function to apply ADASYN (optional)
+def apply_adasyn(X_train, y_train):
+    adasyn = ADASYN(random_state=42)
+    X_train_res, y_train_res = adasyn.fit_resample(X_train, y_train)
     return X_train_res, y_train_res
 
 # Function to train Naïve Bayes
@@ -24,21 +33,16 @@ def train_naive_bayes(X_train, y_train, alpha=1.0):
     return nb_model
 
 # Function to evaluate the model
-def evaluate_model(model, X_test, y_test):
+def evaluate_model(model, X_test, y_test, df, test_indices):
     # Predict on the test data
     y_pred = model.predict(X_test)
 
-    # Accuracy - out of all predicitions how many were true
+    # Calculate accuracy, precision, recall, and F1-score
     accuracy = accuracy_score(y_test, y_pred)
     print(f"Accuracy: {accuracy:.4f}")
 
-    # Precision - out of all positive predictions, how many were true
     precision = precision_score(y_test, y_pred, average='weighted')  # multi class weighting
-
-    # Recall 
     recall = recall_score(y_test, y_pred, average='weighted')
-
-    # F1 Score
     f1 = f1_score(y_test, y_pred, average='weighted')
 
     print(f"Precision: {precision:.4f}")
@@ -58,7 +62,55 @@ def evaluate_model(model, X_test, y_test):
     plt.title('Confusion Matrix')
     plt.show()
 
-    return accuracy, precision, recall, f1
+    # Bias & Ethical Analysis
+    analyze_bias(y_test, y_pred, df, test_indices)  # Pass df and test_indices
+
+
+# Bias & Ethical Analysis: Detect false positives and false negatives
+def analyze_bias(y_test, y_pred, df, test_indices):
+    """Detect and analyze false positives and false negatives for bias"""
+    
+    # Identify false positives (predicted Hate Speech, but it was not)
+    false_positive_idx = (y_pred == 0) & (y_test != 0)
+    false_negative_idx = (y_pred != 0) & (y_test == 0)
+
+    # Use test_indices to extract the corresponding tweets in the test set
+    false_positive_tweets = df.iloc[test_indices[false_positive_idx]]['tweet']
+    false_negative_tweets = df.iloc[test_indices[false_negative_idx]]['tweet']
+
+    # Print some example false positives and false negatives
+    print("\nFalse Positive Examples (Predicted Hate Speech but was not):")
+    print(false_positive_tweets.head())  # Print a few examples
+    
+    print("\nFalse Negative Examples (Predicted not Hate Speech but was):")
+    print(false_negative_tweets.head())  # Print a few examples
+
+    # Fairness Metrics (Recall for each class)
+    print("\nFairness Metrics (Precision, Recall, F1-Score for each class):")
+    print(f"Recall for Hate Speech: {recall_score(y_test, y_pred, pos_label=0, average='weighted'):.4f}")
+    print(f"Recall for Offensive Language: {recall_score(y_test, y_pred, pos_label=1, average='weighted'):.4f}")
+    print(f"Recall for Neutral: {recall_score(y_test, y_pred, pos_label=2, average='weighted'):.4f}")
+    
+    # We can also use classification report for more details
+    print("\nClassification Report:")
+    print(classification_report(y_test, y_pred, target_names=["Hate Speech", "Offensive Language", "Neutral"]))
+
+# Fine-tuning the model: Hyperparameter Tuning for Naïve Bayes (Alpha)
+def hyperparameter_tuning(X_train_res, y_train_res, X_test, y_test):
+    alpha_values = [0.1, 0.5, 1.0, 2.0]
+    best_alpha = 1.0
+    best_f1_score = 0.0
+
+    for alpha in alpha_values:
+        nb_model = train_naive_bayes(X_train_res, y_train_res, alpha)
+        y_pred = nb_model.predict(X_test)
+        f1 = f1_score(y_test, y_pred, average='weighted')
+        if f1 > best_f1_score:
+            best_f1_score = f1
+            best_alpha = alpha
+
+    print(f"Best alpha value: {best_alpha}, with F1 Score: {best_f1_score:.4f}")
+    return best_alpha
 
 # Adjusting the threshold for multiclass classification
 def adjust_threshold(model, X_test, y_test):
@@ -123,34 +175,51 @@ def plot_confusion_matrix(y_true, y_pred, classes):
     plt.title('Confusion Matrix')
     plt.show()
 
+# BERT feature extraction
+def extract_bert_features(texts, tokenizer, model, device):
+    if isinstance(texts, np.ndarray):
+        texts = texts.tolist()  # Convert numpy array to list of strings
+    elif isinstance(texts, torch.sparse.Tensor):
+        texts = texts.to_dense().tolist()  # Convert sparse tensor to dense list
+    elif isinstance(texts, pd.Series):
+        texts = texts.tolist()  # If it's a pandas Series, convert to list
 
+    if isinstance(texts, list) and all(isinstance(t, str) for t in texts):
+        inputs = tokenizer(texts, return_tensors='pt', padding=True, truncation=True, max_length=256)
+    else:
+        raise ValueError("Input must be a list of strings or a list of lists of strings.")
+
+    inputs = {key: value.to(device) for key, value in inputs.items()}
+
+    with torch.no_grad():
+        outputs = model(**inputs)
+
+    embeddings = outputs.last_hidden_state.mean(dim=1)
+    return embeddings.cpu().numpy()
+
+# Main script
 if __name__ == "__main__":
-    file_path = '../labeled_data.csv'
-    X_train, X_test, y_train, y_test = preprocess_data(file_path)
+    file_path = input("Please enter the path to the dataset CSV file: ")  # Adjust with your file path
+    X_train, X_test, y_train, y_test, vectorizer, df, train_indices, test_indices = preprocess_data(file_path)
 
     print("Preprocessing completed!")
     print(f"Training data shape: {X_train.shape}")
     print(f"Testing data shape: {X_test.shape}")
 
-    # SMOTE for data inbalance
+    # 2. apply SMOTE to handle class imbalance
     X_train_res, y_train_res = apply_smote(X_train, y_train)
 
-    print("finished applying smote")
-
-    # naive bayes training
+    # 3. train Naïve Bayes model with resampled data
     nb_model = train_naive_bayes(X_train_res, y_train_res)
 
-    print('finished training')
+    # 4. hyperparameter tuning for Naïve Bayes (optional)
+    best_alpha = hyperparameter_tuning(X_train_res, y_train_res, X_test, y_test)
 
     # 5. adjust the threshold to improve recall for the minority class
     y_pred_adjusted = adjust_threshold(nb_model, X_test, y_test)
 
-    print('finished adjusting thresholds')
-
     # 6. evaluate the model
-    accuracy, precision, recall, f1 = evaluate_model(nb_model, X_test, y_test) 
-
-    print("finished evaluating")
+    evaluate_model(nb_model, X_test, y_test, df, test_indices)  # Pass df and test indices
 
     # 7. visualizations
     plot_class_distribution(y_train)  # Class distribution
